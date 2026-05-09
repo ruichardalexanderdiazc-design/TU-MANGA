@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TU MANGA</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-mark">TM</div>
+        <div>
+          <strong>TU MANGA</strong>
+          <span>Leer cómics, manhwas y mangas</span>
+        </div>
+      </div>
+      <nav class="top-actions">
+        <button id="btnExplore" class="pill">CÓMICS Y MANHWAS</button>
+        <button id="btnAdminPanel" class="pill hidden">Mi estudio</button>
+        <button id="btnSignIn" class="pill secondary">Entrar / Registro</button>
+      </nav>
+    </header>
+
+    <main id="mainContent" class="main-content">
+      <section class="hero-card">
+        <div>
+          <h1>Disfruta MANHWAs, CÓMICS y MANGAs</h1>
+          <p>Solo publicas tú como administrador. Los usuarios leen, comentan, comparten y guardan en su biblioteca.</p>
+        </div>
+        <button id="btnHeroExplore" class="primary">Explorar ahora</button>
+      </section>
+
+      <section class="home-section" id="sectionNew">
+        <div class="section-header"><h2>AÑADIDOS RECIENTEMENTE</h2></div>
+        <div class="cards-grid" id="newCards"></div>
+      </section>
+
+      <section class="home-section" id="sectionSoon">
+        <div class="section-header"><h2>PRÓXIMAMENTE</h2></div>
+        <div class="cards-grid" id="soonCards"></div>
+      </section>
+
+      <section class="home-section" id="sectionDaily">
+        <div class="section-header"><h2>ACTUALIZACIONES DIARIAS</h2></div>
+        <div class="cards-grid" id="dailyCards"></div>
+      </section>
+
+      <section class="home-section" id="sectionTrending">
+        <div class="section-header"><h2>TÍTULOS EN TENDENCIA</h2></div>
+        <div class="cards-grid" id="trendingCards"></div>
+      </section>
+
+      <section class="home-section" id="sectionWorks">
+        <div class="section-header">
+          <h2>CÓMICS Y MANHWAS</h2>
+          <button id="btnGoList" class="pill small">Ver todo</button>
+        </div>
+        <div class="cards-grid" id="allWorksCards"></div>
+      </section>
+
+      <section class="home-section" id="sectionFinished">
+        <div class="section-header"><h2>TERMINADOS</h2></div>
+        <div class="cards-grid" id="finishedCards"></div>
+      </section>
+
+      <section class="home-section" id="sectionFinals">
+        <div class="section-header"><h2>COMICS/MANHWAS/MANGAS TERMINADOS</h2></div>
+        <div class="cards-grid" id="finalsCards"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="panelSearch" class="panel overlay hidden">
+    <div class="panel-inner">
+      <div class="panel-header">
+        <h2>Buscar y filtrar</h2>
+        <button id="btnCloseSearch" class="icon-button">✕</button>
+      </div>
+      <div class="search-row">
+        <input id="searchInput" type="search" placeholder="Buscar título, autor o etiqueta" />
+        <button id="btnSearch" class="pill">Buscar</button>
+      </div>
+      <div class="filter-row" id="genreFilters"></div>
+      <div class="cards-grid" id="searchResults"></div>
+    </div>
+  </div>
+
+  <div id="panelDetail" class="panel overlay hidden">
+    <div class="panel-inner detail-panel">
+      <div class="panel-header">
+        <button id="btnBackDetail" class="icon-button">←</button>
+        <div>
+          <h2 id="detailTitle">Detalle</h2>
+          <p id="detailStatus"></p>
+        </div>
+        <div class="detail-actions">
+          <button id="btnShareDetail" class="icon-button">↗</button>
+          <button id="btnReportDetail" class="icon-button">!</button>
+        </div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-cover">
+          <img id="detailCover" src="" alt="Portada" />
+          <div class="detail-meta">
+            <span id="detailType" class="tag"></span>
+            <span id="detailFinal" class="tag"></span>
+          </div>
+        </div>
+        <div class="detail-info">
+          <p class="small-label">Autor</p>
+          <p id="detailAuthor"></p>
+          <p class="small-label">Etiquetas</p>
+          <div id="detailTags" class="tags"></div>
+          <p class="small-label">Reseña</p>
+          <p id="detailSynopsis" class="synopsis"></p>
+          <button id="btnToggleSynopsis" class="pill small hidden">Leer más</button>
+          <div class="read-stats">
+            <span id="detailReadCount"></span>
+            <span id="detailLikeCount"></span>
+            <span id="detailCommentCount"></span>
+          </div>
+          <div class="detail-buttons">
+            <button id="btnAddLibrary" class="primary">Guardar en biblioteca</button>
+            <button id="btnStartRead" class="secondary">Leer primero</button>
+          </div>
+        </div>
+      </div>
+      <div class="chapter-row">
+        <div class="section-header"><h3>Episodios</h3><button id="btnViewAllChapters" class="pill small">Más</button></div>
+        <div id="chapterList" class="cards-grid small-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panelChapters" class="panel overlay hidden">
+    <div class="panel-inner">
+      <div class="panel-header">
+        <button id="btnBackChapters" class="icon-button">←</button>
+        <h2>Todos los capítulos</h2>
+      </div>
+      <div id="chapterGrid" class="cards-grid"></div>
+    </div>
+  </div>
+
+  <div id="readerOverlay" class="overlay reader hidden">
+    <div class="reader-header hidden" id="readerHeader">
+      <button id="btnReaderBack" class="icon-button">←</button>
+      <div>
+        <p id="readerTitle" class="reader-title"></p>
+        <p id="readerSubtitle" class="reader-subtitle"></p>
+      </div>
+      <div class="reader-actions">
+        <button id="btnReaderFavorite" class="icon-button">♡ +</button>
+        <button id="btnReaderShare" class="icon-button">↗</button>
+      </div>
+    </div>
+    <div class="reader-pages" id="readerPages"></div>
+    <div class="reader-footer hidden" id="readerFooter">
+      <button id="btnPrevChapter" class="pill">⬅️</button>
+      <button id="btnToggleEps" class="pill">☰</button>
+      <button id="btnNextChapter" class="pill">➡️</button>
+    </div>
+  </div>
+
+  <div id="panelAuth" class="panel overlay hidden">
+    <div class="panel-inner auth-panel">
+      <div class="panel-header">
+        <h2>Entrar o crear cuenta</h2>
+        <button id="btnCloseAuth" class="icon-button">✕</button>
+      </div>
+      <div class="auth-body">
+        <p>Usa tu correo para ingresar. Solo el administrador puede acceder al panel de estudio.</p>
+        <input id="authEmail" type="email" placeholder="Correo electrónico" />
+        <button id="btnSendMagicLink" class="primary">Enviar enlace mágico</button>
+        <div class="auth-help">Recibirás un correo con el enlace para ingresar.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panelAdmin" class="panel overlay hidden">
+    <div class="panel-inner admin-panel">
+      <div class="panel-header">
+        <h2>Panel de administrador</h2>
+        <button id="btnCloseAdmin" class="icon-button">✕</button>
+      </div>
+      <div class="admin-body">
+        <div class="admin-card">
+          <h3>Tu estudio</h3>
+          <p>Publica MANHWAs, CÓMICS y MANGAs desde aquí.</p>
+          <button id="btnCreateWork" class="primary">Abrir estudio</button>
+        </div>
+        <div class="admin-card">
+          <h3>Obras publicadas</h3>
+          <div id="adminWorksList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panelStudio" class="panel overlay hidden">
+    <div class="panel-inner studio-panel">
+      <div class="panel-header">
+        <button id="btnBackStudio" class="icon-button">←</button>
+        <h2>Estudio de publicación</h2>
+      </div>
+      <div class="studio-steps">
+        <div class="studio-step" id="studioStep1">
+          <h3>1. Tipo de obra y datos</h3>
+          <label>Tipo de obra</label>
+          <select id="workType">
+            <option value="COMIC">COMIC</option>
+            <option value="MANHWA">MANHWA</option>
+            <option value="MANGA">MANGA</option>
+          </select>
+          <label>Título</label>
+          <input id="workTitle" placeholder="Título de la obra" />
+          <label>Sinopsis corta</label>
+          <textarea id="workSynopsis" rows="4" placeholder="Escribe una sinopsis"></textarea>
+          <label>Portada (URL de imagen)</label>
+          <input id="workCover" placeholder="https://..." />
+          <label>Estado</label>
+          <select id="workStatus">
+            <option value="finalizado">FINALIZADO</option>
+            <option value="en emisión">EN EMISIÓN</option>
+          </select>
+          <div class="inline-row">
+            <label>Capítulos actuales</label>
+            <input id="workChapterCount" type="number" min="1" value="1" />
+          </div>
+          <div class="inline-row hidden" id="workScheduleRow">
+            <label>Programar publicación</label>
+            <input id="workSchedule" type="datetime-local" />
+          </div>
+          <button id="btnStep1Next" class="primary">Siguiente</button>
+        </div>
+        <div class="studio-step hidden" id="studioStep2">
+          <h3>2. Categorías y etiquetas</h3>
+          <div class="tag-grid" id="categoryOptions"></div>
+          <button id="btnStep2Next" class="primary">Siguiente</button>
+        </div>
+        <div class="studio-step hidden" id="studioStep3">
+          <h3>3. Revisión y publicación</h3>
+          <div class="review-card">
+            <img id="reviewCover" src="" alt="Portada" />
+            <div>
+              <p id="reviewTitle"></p>
+              <p id="reviewSummary"></p>
+              <p id="reviewInfo"></p>
+            </div>
+          </div>
+          <button id="btnPublishWork" class="primary">Publicar</button>
+          <button id="btnBackStudioStep" class="secondary">Volver</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
