@@ -1,4 +1,5 @@
 const adminEmail = 'richardalexanderdiaz0@gmail.com';
+let isAdmin = false;
 const sections = {
   new: document.getElementById('newCards'),
   soon: document.getElementById('soonCards'),
@@ -101,15 +102,21 @@ const showToast = message => {
 const openPanel = panel => panel.classList.remove('hidden');
 const closePanel = panel => panel.classList.add('hidden');
 const getUser = async () => {
-  const { data } = await supabase.auth.getSession();
-  currentUser = data.session?.user || null;
-  if (currentUser) {
-    controls.btnSignIn.textContent = 'Mi cuenta';
-    if (currentUser.email === adminEmail) controls.btnAdminPanel.classList.remove('hidden');
-    else controls.btnAdminPanel.classList.add('hidden');
-  } else {
-    controls.btnSignIn.textContent = 'Entrar / Registro';
-    controls.btnAdminPanel.classList.add('hidden');
+  try {
+    const { data } = await supabase.auth.getSession();
+    currentUser = data.session?.user || null;
+    if (currentUser) {
+      isAdmin = currentUser.email === adminEmail;
+      controls.btnSignIn.textContent = `${currentUser.email.split('@')[0]}`;
+      if (isAdmin) controls.btnAdminPanel.classList.remove('hidden');
+      else controls.btnAdminPanel.classList.add('hidden');
+    } else {
+      isAdmin = false;
+      controls.btnSignIn.textContent = 'Entrar / Registro';
+      controls.btnAdminPanel.classList.add('hidden');
+    }
+  } catch (error) {
+    console.error('Error getting user:', error);
   }
 };
 const buildCard = work => {
@@ -285,9 +292,16 @@ const addLibraryEntry = async workId => {
   const { error } = await supabase.from('manga_library').upsert({ user_id: currentUser.id, manga_work_id: workId });
   if (error) console.warn('Biblioteca error', error);
 };
-const toggleSynopsis = () => {
-  const isExpanded = controls.detailSynopsis.style.maxHeight === 'none';
-  controls.detailSynopsis.style.maxHeight = isExpanded ? '138px' : 'none';
+coif (!currentUser) { showToast('Debes estar registrado para reportar'); return; }
+  const reason = prompt('Motivo por el reporte:');
+  if (!reason) return;
+  try {
+    await supabase.from('manga_reports').insert([{ manga_work_id: currentWork.id, user_id: currentUser.id, reason }]);
+    showToast('Reporte enviado. Gracias.');
+  } catch (error) {
+    console.error(error);
+    showToast('Error al enviar reporte');
+  } = isExpanded ? '138px' : 'none';
   controls.btnToggleSynopsis.textContent = isExpanded ? 'Leer más' : 'Leer menos';
 };
 const reportWork = async () => {
@@ -303,19 +317,24 @@ const shareCurrentWork = async () => {
   } else {
     const link = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
     window.open(link, '_blank');
-  }
-};
-const handleReaderInteraction = () => {
-  const visible = controls.readerHeader.classList.contains('hidden');
-  if (visible) {
-    controls.readerHeader.classList.remove('hidden');
-    controls.readerFooter.classList.remove('hidden');
-  } else {
-    controls.readerHeader.classList.add('hidden');
-    controls.readerFooter.classList.add('hidden');
-  }
-};
-const loadAdminWorks = async () => {
+  if (!isAdmin) return;
+  try {
+    const { data, error } = await supabase.from('manga_works').select('*').order('created_at',{ascending:false});
+    controls.adminWorksList.innerHTML = '';
+    if (error || !data.length) {
+      controls.adminWorksList.innerHTML = '<p>No hay obras publicadas aún.</p>';
+      return;
+    }
+    data.forEach(work => {
+      const row = document.createElement('div');
+      row.className = 'card';
+      row.style.padding = '12px 16px';
+      row.innerHTML = `<strong>${work.title}</strong><p>${work.work_type} · ${work.status}</p>`;
+      controls.adminWorksList.appendChild(row);
+    });
+  } catch (error) {
+    console.error(error);
+  } loadAdminWorks = async () => {
   const { data, error } = await supabase.from('manga_works').select('*').order('created_at',{ascending:false});
   controls.adminWorksList.innerHTML = '';
   if (error || !data.length) {
@@ -339,33 +358,65 @@ const prepareStudio = () => {
     btn.textContent = label;
     btn.addEventListener('click', () => btn.classList.toggle('selected'));
     controls.categoryOptions.appendChild(btn);
-  });
+  });isAdmin) return;
+  try {
+    const tags = [...controls.categoryOptions.querySelectorAll('.selected')].map(el => el.textContent);
+    const chapterCount = Number(controls.workChapterCount.value) || 1;
+    const status = controls.workStatus.value;
+    const scheduledAt = controls.workSchedule.value ? new Date(controls.workSchedule.value).toISOString() : null;
+    const { data: work, error } = await supabase.from('manga_works').insert([{ title: controls.workTitle.value, synopsis: controls.workSynopsis.value, cover_url: controls.workCover.value, work_type: controls.workType.value, status, scheduled_at: scheduledAt, tags, author: currentUser.email, read_count: 0, likes_count: 0, admin_user_id: currentUser.id }]).select().single();
+    if (error || !work) { showToast('Error publicando obra'); console.error(error); return; }
+    const chapterInserts = Array.from({ length: chapterCount }, (_, index) => ({ manga_work_id: work.id, chapter_number: `${index + 1}`, cover_url: '', pages: [] }));
+    await supabase.from('manga_chapters').insert(chapterInserts);
+    showToast(`Obra ${work.title} publicada.`);
+    loadAdminWorks();
+    closePanel(controls.panelStudio);
+    await buildSection();
+  } cahandleSignIn = async () => {
+  controls.authEmail.value = '';
+  openPanel(controls.panelAuth);
 };
-const openStudioStep = (step) => {
-  document.querySelectorAll('.studio-step').forEach(el => el.classList.add('hidden'));
-  document.getElementById(`studioStep${step}`).classList.remove('hidden');
+
+const handleSendMagicLink = async () => {
+  const email = controls.authEmail.value.trim();
+  if (!email) { showToast('Ingresa un correo válido.'); return; }
+  try {
+    const { error } = await supabase.auth.signInWithOtp({ email });
+    if (error) { showToast('Error enviando enlace'); console.error(error); return; }
+    showToast('Revisa tu correo para entrar.');
+    setTimeout(() => { closePanel(controls.panelAuth); }, 2000);
+  } catch (error) {
+    console.error(error);
+    showToast('Error enviando enlace');
+  }
 };
-const showScheduleRow = () => {
-  controls.workScheduleRow.classList.toggle('hidden', controls.workStatus.value !== 'en emisión');
-};
-const prepareReview = () => {
-  const tags = [...controls.categoryOptions.querySelectorAll('.selected')].map(el => el.textContent);
-  const schedule = controls.workSchedule.value ? new Date(controls.workSchedule.value).toLocaleString() : 'Sin programar';
-  controls.reviewCover.src = controls.workCover.value || 'https://via.placeholder.com/320x440?text=Portada';
-  controls.reviewTitle.textContent = controls.workTitle.value || 'Título pendiente';
+
+const init = async () => {
+  await getUser();
+  await buildSection();
+  loadGenreFilters();
+  prepareStudio();
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    currentUser = session?.user || null;
+    if (currentUser) {
+      isAdmin = currentUser.email === adminEmail;
+      controls.btnSignIn.textContent = `${currentUser.email.split('@')[0]}`;
+      if (isAdmin) controls.btnAdminPanel.classList.remove('hidden');
+      else controls.btnAdminPanel.classList.add('hidden');
+    } else {
+      isAdmin = false;
+      controls.btnSignIn.textContent = 'Entrar / Registro';
+      controls.btnAdminPanel.classList.add('hidden');
+    }
+  }wTitle.textContent = controls.workTitle.value || 'Título pendiente';
   controls.reviewSummary.textContent = controls.workSynopsis.value || 'No hay sinopsis.';
   controls.reviewInfo.textContent = `Estado: ${workStatusLabels[controls.workStatus.value] || controls.workStatus.value}. Capítulos: ${controls.workChapterCount.value}. Tipo: ${controls.workType.value}. Etiquetas: ${tags.join(', ') || 'Sin etiquetas'}. Publicar: ${schedule}`;
 };
 const publishWork = async () => {
-  if (!currentUser || currentUser.email !== adminEmail) { showToast('Solo administrador puede publicar.'); return; }
-  const tags = [...controls.categoryOptions.querySelectorAll('.selected')].map(el => el.textContent);
-  const chapterCount = Number(controls.workChapterCount.value) || 1;
-  const status = controls.workStatus.value;
-  const scheduledAt = controls.workSchedule.value ? new Date(controls.workSchedule.value).toISOString() : null;
-  const { data: work, error } = await supabase.from('manga_works').insert([{ title: controls.workTitle.value, synopsis: controls.workSynopsis.value, cover_url: controls.workCover.value, work_type: controls.workType.value, status, scheduled_at: scheduledAt, tags, author: currentUser.email, read_count: 0, likes_count: 0 }]).select().single();
-  if (error || !work) { showToast('Error publicando obra'); console.error(error); return; }
-  const chapterInserts = Array.from({ length: chapterCount }, (_, index) => ({ manga_work_id: work.id, chapter_number: `${index + 1}`, cover_url: '', pages: [] }));
-  await supabase.from('manga_chapters').insert(chapterInserts);
+  if (!currentUser || currentUser.email !== ahandleSignIn);
+controls.btnCloseAuth.addEventListener('click', () => closePanel(controls.panelAuth));
+controls.btnSendMagicLink.addEventListener('click', handleSendMagicLink);
+controls.authEmail.addEventListener('keyup', e => e.key === 'Enter' && handleSendMagicLink() await supabase.from('manga_chapters').insert(chapterInserts);
   showToast(`Obra ${work.title} publicada.`);
   loadAdminWorks();
   closePanel(controls.panelStudio);
