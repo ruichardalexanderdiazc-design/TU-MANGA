@@ -102,10 +102,17 @@ const controls = {
   workSchedule: document.getElementById('workSchedule'),
   workScheduleRow: document.getElementById('workScheduleRow'),
   categoryOptions: document.getElementById('categoryOptions'),
-  reviewCover: document.getElementById('reviewCover'),
-  reviewTitle: document.getElementById('reviewTitle'),
-  reviewSummary: document.getElementById('reviewSummary'),
-  reviewInfo: document.getElementById('reviewInfo'),
+  btnCoverUpload: document.getElementById('btnCoverUpload'),
+  coverPreview: document.getElementById('coverPreview'),
+  workCoverFile: document.getElementById('workCoverFile'),
+  chaptersUpload: document.getElementById('chaptersUpload'),
+  btnAddChapter: document.getElementById('btnAddChapter'),
+  panelWorkManage: document.getElementById('panelWorkManage'),
+  btnBackWorkManage: document.getElementById('btnBackWorkManage'),
+  manageWorkTitle: document.getElementById('manageWorkTitle'),
+  btnDeleteWork: document.getElementById('btnDeleteWork'),
+  manageChaptersList: document.getElementById('manageChaptersList'),
+  btnAddNewChapter: document.getElementById('btnAddNewChapter'),
   navHome: document.getElementById('navHome'),
   navDiscover: document.getElementById('navDiscover'),
   navLibrary: document.getElementById('navLibrary'),
@@ -409,7 +416,14 @@ const loadAdminWorks = () => {
     const row = document.createElement('div');
     row.className = 'card';
     row.style.padding = '14px 16px';
-    row.innerHTML = `<strong>${work.title}</strong><p>${work.work_type} � ${work.status}</p>`;
+    row.innerHTML = `
+      <strong>${work.title}</strong>
+      <p>${work.work_type} • ${work.status}</p>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <button class="pill small" onclick="manageWork('${work.id}')">Gestionar</button>
+        <button class="pill small secondary" onclick="deleteWork('${work.id}')">Eliminar</button>
+      </div>
+    `;
     controls.adminWorksList.appendChild(row);
   });
 };
@@ -426,6 +440,32 @@ const prepareStudio = () => {
   });
   showScheduleRow();
   openStudioStep(1);
+
+  // File upload for cover
+  controls.btnCoverUpload.addEventListener('click', () => controls.workCoverFile.click());
+  controls.workCoverFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        controls.coverPreview.src = e.target.result;
+        controls.coverPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Add chapter upload
+  controls.btnAddChapter.addEventListener('click', () => {
+    const chapterNum = controls.chaptersUpload.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'chapter-upload-item';
+    div.innerHTML = `
+      <label>Capítulo ${chapterNum}</label>
+      <input type="file" multiple accept="image/*" class="chapterFiles" data-chapter="${chapterNum}" />
+    `;
+    controls.chaptersUpload.appendChild(div);
+  });
 };
 
 const openStudioStep = step => {
@@ -606,7 +646,58 @@ const init = () => {
   controls.btnStep2Next.addEventListener('click', () => { prepareReview(); openStudioStep(3); });
   controls.btnPublishWork.addEventListener('click', publishWork);
   controls.btnBackStudioStep.addEventListener('click', () => openStudioStep(2));
-  controls.workStatus.addEventListener('change', showScheduleRow);
+  controls.btnBackWorkManage.addEventListener('click', () => closePanel(controls.panelWorkManage));
+  controls.btnDeleteWork.addEventListener('click', () => deleteWork(currentWork.id));
+  controls.btnAddNewChapter.addEventListener('click', addNewChapter);
 };
 
-window.addEventListener('load', init);
+const manageWork = (workId) => {
+  const work = works.find(w => w.id === workId);
+  if (!work) return;
+  currentWork = work;
+  controls.manageWorkTitle.textContent = `Gestionar: ${work.title}`;
+  loadManageChapters();
+  openPanel(controls.panelWorkManage);
+};
+
+const deleteWork = (workId) => {
+  if (!confirm('¿Eliminar esta obra?')) return;
+  const index = works.findIndex(w => w.id === workId);
+  if (index > -1) {
+    works.splice(index, 1);
+    delete chapterMap[workId];
+    loadAdminWorks();
+    buildSection();
+    showToast('Obra eliminada.');
+  }
+};
+
+const loadManageChapters = () => {
+  const chapters = chapterMap[currentWork.id] || [];
+  controls.manageChaptersList.innerHTML = '';
+  chapters.forEach(chapter => {
+    const div = document.createElement('div');
+    div.className = 'manage-chapter';
+    div.innerHTML = `
+      <span>Capítulo ${chapter.chapter_number}</span>
+      <button class="pill small secondary" onclick="deleteChapter('${chapter.id}')">Eliminar</button>
+    `;
+    controls.manageChaptersList.appendChild(div);
+  });
+};
+
+const deleteChapter = (chapterId) => {
+  if (!confirm('¿Eliminar este capítulo?')) return;
+  const chapters = chapterMap[currentWork.id];
+  const index = chapters.findIndex(c => c.id === chapterId);
+  if (index > -1) {
+    chapters.splice(index, 1);
+    loadManageChapters();
+    showToast('Capítulo eliminado.');
+  }
+};
+
+const addNewChapter = () => {
+  // Placeholder for adding new chapter
+  showToast('Función para subir capítulo nuevo próximamente.');
+};
