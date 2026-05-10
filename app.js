@@ -75,6 +75,7 @@ const controls = {
   btnEmailRegister: document.getElementById('btnEmailRegister'),
   btnGoogleSignIn: document.getElementById('btnGoogleSignIn'),
   btnSignOut: document.getElementById('btnSignOut'),
+  authHeader: document.getElementById('authHeader'),
   authEmail: document.getElementById('authEmail'),
   authPassword: document.getElementById('authPassword'),
   authForm: document.getElementById('authForm'),
@@ -96,23 +97,20 @@ const controls = {
   workType: document.getElementById('workType'),
   workTitle: document.getElementById('workTitle'),
   workSynopsis: document.getElementById('workSynopsis'),
-  workCover: document.getElementById('workCover'),
+  btnSelectCover: document.getElementById('btnSelectCover'),
+  coverLabel: document.querySelector('#btnSelectCover .cover-label'),
+  workCoverInput: document.getElementById('workCoverInput'),
+  workCoverPreview: document.getElementById('workCoverPreview'),
+  workCoverPreviewImage: document.querySelector('#workCoverPreview img'),
   workStatus: document.getElementById('workStatus'),
   workChapterCount: document.getElementById('workChapterCount'),
   workSchedule: document.getElementById('workSchedule'),
   workScheduleRow: document.getElementById('workScheduleRow'),
   categoryOptions: document.getElementById('categoryOptions'),
-  btnCoverUpload: document.getElementById('btnCoverUpload'),
-  coverPreview: document.getElementById('coverPreview'),
-  workCoverFile: document.getElementById('workCoverFile'),
-  chaptersUpload: document.getElementById('chaptersUpload'),
-  btnAddChapter: document.getElementById('btnAddChapter'),
-  panelWorkManage: document.getElementById('panelWorkManage'),
-  btnBackWorkManage: document.getElementById('btnBackWorkManage'),
-  manageWorkTitle: document.getElementById('manageWorkTitle'),
-  btnDeleteWork: document.getElementById('btnDeleteWork'),
-  manageChaptersList: document.getElementById('manageChaptersList'),
-  btnAddNewChapter: document.getElementById('btnAddNewChapter'),
+  reviewCover: document.getElementById('reviewCover'),
+  reviewTitle: document.getElementById('reviewTitle'),
+  reviewSummary: document.getElementById('reviewSummary'),
+  reviewInfo: document.getElementById('reviewInfo'),
   navHome: document.getElementById('navHome'),
   navDiscover: document.getElementById('navDiscover'),
   navLibrary: document.getElementById('navLibrary'),
@@ -150,18 +148,15 @@ const setAuthState = user => {
   controls.btnSignIn.classList.toggle('hidden', !!user);
   controls.btnAdminPanel.classList.toggle('hidden', !isAdmin);
   controls.navStudio.classList.toggle('hidden', !isAdmin);
-
   if (user) {
-    const name = user.displayName || user.email.split('@')[0] || 'Usuario';
-    controls.btnSignIn.textContent = name;
-    renderProfile(user);
+    controls.btnSignIn.textContent = user.email.split('@')[0];
+    controls.authHeader.textContent = 'Mi perfil';
     controls.authForm.classList.add('hidden');
     controls.profileView.classList.remove('hidden');
-    if (!controls.panelAuth.classList.contains('hidden')) {
-      openPanel(controls.panelAuth);
-    }
+    renderProfile(user);
   } else {
     controls.btnSignIn.textContent = 'Entrar / Registro';
+    controls.authHeader.textContent = 'Entrar o crear cuenta';
     controls.authForm.classList.remove('hidden');
     controls.profileView.classList.add('hidden');
     controls.authEmail.value = '';
@@ -239,13 +234,7 @@ const setActiveNav = tab => {
     else showToast('Tu biblioteca está vacía por ahora.');
   }
   if (tab === 'profile') {
-    if (!currentUser) {
-      openPanel(controls.panelAuth);
-    } else {
-      controls.authForm.classList.add('hidden');
-      controls.profileView.classList.remove('hidden');
-      openPanel(controls.panelAuth);
-    }
+    openPanel(controls.panelAuth);
   }
   if (tab === 'studio') {
     if (!currentUser || currentUser.email !== adminEmail) {
@@ -416,20 +405,20 @@ const loadAdminWorks = () => {
     const row = document.createElement('div');
     row.className = 'card';
     row.style.padding = '14px 16px';
-    row.innerHTML = `
-      <strong>${work.title}</strong>
-      <p>${work.work_type} • ${work.status}</p>
-      <div style="display:flex; gap:10px; margin-top:10px;">
-        <button class="pill small" onclick="manageWork('${work.id}')">Gestionar</button>
-        <button class="pill small secondary" onclick="deleteWork('${work.id}')">Eliminar</button>
-      </div>
-    `;
+    row.innerHTML = `<strong>${work.title}</strong><p>${work.work_type} � ${work.status}</p>`;
     controls.adminWorksList.appendChild(row);
   });
 };
 
+let selectedCoverData = '';
+
 const prepareStudio = () => {
   controls.categoryOptions.innerHTML = '';
+  selectedCoverData = '';
+  controls.workCoverInput.value = '';
+  controls.workCoverPreview.classList.add('hidden');
+  controls.workCoverPreviewImage.src = '';
+  controls.coverLabel.textContent = 'Toca para agregar portada';
   categoryLabels.forEach(label => {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -440,32 +429,6 @@ const prepareStudio = () => {
   });
   showScheduleRow();
   openStudioStep(1);
-
-  // File upload for cover
-  controls.btnCoverUpload.addEventListener('click', () => controls.workCoverFile.click());
-  controls.workCoverFile.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        controls.coverPreview.src = e.target.result;
-        controls.coverPreview.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  // Add chapter upload
-  controls.btnAddChapter.addEventListener('click', () => {
-    const chapterNum = controls.chaptersUpload.children.length + 1;
-    const div = document.createElement('div');
-    div.className = 'chapter-upload-item';
-    div.innerHTML = `
-      <label>Capítulo ${chapterNum}</label>
-      <input type="file" multiple accept="image/*" class="chapterFiles" data-chapter="${chapterNum}" />
-    `;
-    controls.chaptersUpload.appendChild(div);
-  });
 };
 
 const openStudioStep = step => {
@@ -481,7 +444,7 @@ const showScheduleRow = () => {
 const prepareReview = () => {
   const tags = [...controls.categoryOptions.querySelectorAll('.selected')].map(el => el.textContent);
   const schedule = controls.workSchedule.value ? new Date(controls.workSchedule.value).toLocaleString() : 'Sin programaci�n';
-  controls.reviewCover.src = controls.workCover.value || 'https://via.placeholder.com/400x520/ffccd7/333?text=Portada';
+  controls.reviewCover.src = selectedCoverData || 'https://via.placeholder.com/400x520/ffccd7/333?text=Portada';
   controls.reviewTitle.textContent = controls.workTitle.value || 'T�tulo pendiente';
   controls.reviewSummary.textContent = controls.workSynopsis.value || 'No hay sinopsis.';
   controls.reviewInfo.textContent = `Estado: ${workStatusLabels[controls.workStatus.value] || controls.workStatus.value}. Cap�tulos: ${controls.workChapterCount.value}. Tipo: ${controls.workType.value}. Etiquetas: ${tags.join(', ') || 'Sin etiquetas'}. Programado: ${schedule}`;
@@ -492,9 +455,9 @@ const publishWork = () => {
   const tags = [...controls.categoryOptions.querySelectorAll('.selected')].map(el => el.textContent);
   const newWork = {
     id: `w${Date.now()}`,
-    title: controls.workTitle.value || 'Sin t�tulo',
+    title: controls.workTitle.value || 'Sin título',
     synopsis: controls.workSynopsis.value || 'Sinopsis pendiente.',
-    cover_url: controls.workCover.value || 'https://via.placeholder.com/400x520/ffccd7/333?text=Portada',
+    cover_url: selectedCoverData || 'https://via.placeholder.com/400x520/ffccd7/333?text=Portada',
     work_type: controls.workType.value,
     status: controls.workStatus.value,
     tags,
@@ -521,14 +484,13 @@ const publishWork = () => {
 const handleEmailSignIn = async () => {
   const email = controls.authEmail.value.trim();
   const password = controls.authPassword.value;
-  if (!email || !password) { showToast('Ingresa correo y contraseña.'); return; }
+  if (!email || !password) { showToast('Ingresa correo y contrase�a.'); return; }
   try {
     await auth.signInWithEmailAndPassword(email, password);
-    setAuthState(auth.currentUser);
     closePanel(controls.panelAuth);
-    showToast('Sesión iniciada.');
+    showToast('Sesi�n iniciada.');
   } catch (error) {
-    showToast(error.message || 'Error al iniciar sesión.');
+    showToast(error.message || 'Error al iniciar sesi�n.');
     console.error(error);
   }
 };
@@ -536,10 +498,9 @@ const handleEmailSignIn = async () => {
 const handleEmailRegister = async () => {
   const email = controls.authEmail.value.trim();
   const password = controls.authPassword.value;
-  if (!email || !password) { showToast('Ingresa correo y contraseña.'); return; }
+  if (!email || !password) { showToast('Ingresa correo y contrase�a.'); return; }
   try {
     await auth.createUserWithEmailAndPassword(email, password);
-    setAuthState(auth.currentUser);
     closePanel(controls.panelAuth);
     showToast('Cuenta creada. Bienvenido.');
   } catch (error) {
@@ -551,9 +512,8 @@ const handleEmailRegister = async () => {
 const handleGoogleSignIn = async () => {
   try {
     await auth.signInWithPopup(googleProvider);
-    setAuthState(auth.currentUser);
     closePanel(controls.panelAuth);
-    showToast('Has iniciado sesión con Google.');
+    showToast('Has iniciado sesi�n con Google.');
   } catch (error) {
     showToast(error.message || 'Error con Google.');
     console.error(error);
@@ -594,9 +554,6 @@ const init = () => {
   auth.onAuthStateChanged(user => {
     setAuthState(user);
     savedLibrary = getSavedLibrary();
-    if (user) {
-      closePanel(controls.panelAuth);
-    }
   });
   controls.btnHeroExplore.addEventListener('click', () => openPanel(controls.panelSearch));
   controls.btnExplore.addEventListener('click', () => openPanel(controls.panelSearch));
@@ -642,62 +599,24 @@ const init = () => {
   controls.btnCloseAdmin.addEventListener('click', () => closePanel(controls.panelAdmin));
   controls.btnCreateWork.addEventListener('click', () => { prepareStudio(); openPanel(controls.panelStudio); });
   controls.btnBackStudio.addEventListener('click', () => closePanel(controls.panelStudio));
+  controls.btnSelectCover.addEventListener('click', () => controls.workCoverInput.click());
+  controls.workCoverInput.addEventListener('change', () => {
+    const file = controls.workCoverInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      selectedCoverData = e.target.result;
+      controls.workCoverPreviewImage.src = selectedCoverData;
+      controls.workCoverPreview.classList.remove('hidden');
+      controls.coverLabel.textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+  });
   controls.btnStep1Next.addEventListener('click', () => { prepareReview(); openStudioStep(2); });
   controls.btnStep2Next.addEventListener('click', () => { prepareReview(); openStudioStep(3); });
   controls.btnPublishWork.addEventListener('click', publishWork);
   controls.btnBackStudioStep.addEventListener('click', () => openStudioStep(2));
-  controls.btnBackWorkManage.addEventListener('click', () => closePanel(controls.panelWorkManage));
-  controls.btnDeleteWork.addEventListener('click', () => deleteWork(currentWork.id));
-  controls.btnAddNewChapter.addEventListener('click', addNewChapter);
+  controls.workStatus.addEventListener('change', showScheduleRow);
 };
 
-const manageWork = (workId) => {
-  const work = works.find(w => w.id === workId);
-  if (!work) return;
-  currentWork = work;
-  controls.manageWorkTitle.textContent = `Gestionar: ${work.title}`;
-  loadManageChapters();
-  openPanel(controls.panelWorkManage);
-};
-
-const deleteWork = (workId) => {
-  if (!confirm('¿Eliminar esta obra?')) return;
-  const index = works.findIndex(w => w.id === workId);
-  if (index > -1) {
-    works.splice(index, 1);
-    delete chapterMap[workId];
-    loadAdminWorks();
-    buildSection();
-    showToast('Obra eliminada.');
-  }
-};
-
-const loadManageChapters = () => {
-  const chapters = chapterMap[currentWork.id] || [];
-  controls.manageChaptersList.innerHTML = '';
-  chapters.forEach(chapter => {
-    const div = document.createElement('div');
-    div.className = 'manage-chapter';
-    div.innerHTML = `
-      <span>Capítulo ${chapter.chapter_number}</span>
-      <button class="pill small secondary" onclick="deleteChapter('${chapter.id}')">Eliminar</button>
-    `;
-    controls.manageChaptersList.appendChild(div);
-  });
-};
-
-const deleteChapter = (chapterId) => {
-  if (!confirm('¿Eliminar este capítulo?')) return;
-  const chapters = chapterMap[currentWork.id];
-  const index = chapters.findIndex(c => c.id === chapterId);
-  if (index > -1) {
-    chapters.splice(index, 1);
-    loadManageChapters();
-    showToast('Capítulo eliminado.');
-  }
-};
-
-const addNewChapter = () => {
-  // Placeholder for adding new chapter
-  showToast('Función para subir capítulo nuevo próximamente.');
-};
+window.addEventListener('load', init);
