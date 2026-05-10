@@ -103,6 +103,7 @@ const controls = {
   navDiscover: document.getElementById('navDiscover'),
   navLibrary: document.getElementById('navLibrary'),
   navProfile: document.getElementById('navProfile'),
+  navStudio: document.getElementById('navStudio'),
   btnCloseSearchOnPage: document.getElementById('btnCloseSearch')
 };
 let currentUser = null;
@@ -132,13 +133,15 @@ const closePanel = panel => panel.classList.add('hidden');
 const setAuthState = user => {
   currentUser = user;
   const isAdmin = user?.email === adminEmail;
-  controls.btnSignIn.textContent = user ? user.email.split('@')[0] : 'Entrar / Registro';
-  controls.btnAdminPanel.classList.toggle('hidden', !isAdmin);
-  controls.btnSignOut.classList.toggle('hidden', !user);
-  if (controls.navProfile) {
-    const badge = controls.navProfile.querySelector('.admin-badge');
-    badge?.classList.toggle('hidden', !isAdmin);
+  controls.btnSignIn.classList.toggle('hidden', !!user);
+  if (user) {
+    controls.btnSignIn.textContent = user.email.split('@')[0];
+  } else {
+    controls.btnSignIn.textContent = 'Entrar / Registro';
   }
+  controls.btnAdminPanel.classList.toggle('hidden', !isAdmin);
+  controls.navStudio.classList.toggle('hidden', !isAdmin);
+  controls.btnSignOut.classList.toggle('hidden', !user);
   if (!user) {
     controls.authEmail.value = '';
     controls.authPassword.value = '';
@@ -175,7 +178,7 @@ const buildCard = work => {
 const renderCards = (element, list) => {
   element.innerHTML = '';
   if (!list.length) {
-    element.innerHTML = '<div class="card"><div class="card-body"><p>No hay obras aqu� todav�a.</p></div></div>';
+    element.innerHTML = '<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: #999;"><p>No hay nada por ver...por ahora.</p></div>';
     return;
   }
   list.forEach(item => element.appendChild(buildCard(item)));
@@ -201,7 +204,7 @@ const buildSection = async () => {
 };
 
 const setActiveNav = tab => {
-  ['navHome','navDiscover','navLibrary','navProfile'].forEach(id => {
+  ['navHome','navDiscover','navLibrary','navProfile','navStudio'].forEach(id => {
     controls[id].classList.toggle('active', id === `nav${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
   });
   if (tab === 'home') {
@@ -216,6 +219,14 @@ const setActiveNav = tab => {
   }
   if (tab === 'profile') {
     openPanel(controls.panelAuth);
+  }
+  if (tab === 'studio') {
+    if (!currentUser || currentUser.email !== adminEmail) {
+      showToast('Solo el admin puede acceder al estudio.');
+    } else {
+      loadAdminWorks();
+      openPanel(controls.panelAdmin);
+    }
   }
 };
 
@@ -489,10 +500,12 @@ const handleGoogleSignIn = async () => {
 const handleSignOut = async () => {
   try {
     await auth.signOut();
-    showToast('Sesi�n cerrada.');
+    showToast('Sesión cerrada.');
     closePanel(controls.panelAuth);
+    closePanel(controls.panelAdmin);
+    closePanel(controls.panelStudio);
   } catch (error) {
-    showToast('No se pudo cerrar sesi�n.');
+    showToast('No se pudo cerrar sesión.');
   }
 };
 
@@ -514,6 +527,7 @@ const init = () => {
   controls.navDiscover.addEventListener('click', () => setActiveNav('discover'));
   controls.navLibrary.addEventListener('click', () => setActiveNav('library'));
   controls.navProfile.addEventListener('click', () => setActiveNav('profile'));
+  controls.navStudio.addEventListener('click', () => setActiveNav('studio'));
   controls.searchInput.addEventListener('keyup', e => e.key === 'Enter' && performSearch());
   controls.btnBackDetail.addEventListener('click', () => closePanel(controls.panelDetail));
   controls.btnViewAllChapters.addEventListener('click', openChaptersPanel);
