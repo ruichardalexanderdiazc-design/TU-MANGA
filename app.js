@@ -143,11 +143,16 @@ const setAuthState = user => {
   controls.btnSignIn.classList.toggle('hidden', !!user);
   controls.btnAdminPanel.classList.toggle('hidden', !isAdmin);
   controls.navStudio.classList.toggle('hidden', !isAdmin);
+
   if (user) {
-    controls.btnSignIn.textContent = user.email.split('@')[0];
+    const name = user.displayName || user.email.split('@')[0] || 'Usuario';
+    controls.btnSignIn.textContent = name;
+    renderProfile(user);
     controls.authForm.classList.add('hidden');
     controls.profileView.classList.remove('hidden');
-    renderProfile(user);
+    if (!controls.panelAuth.classList.contains('hidden')) {
+      openPanel(controls.panelAuth);
+    }
   } else {
     controls.btnSignIn.textContent = 'Entrar / Registro';
     controls.authForm.classList.remove('hidden');
@@ -227,7 +232,13 @@ const setActiveNav = tab => {
     else showToast('Tu biblioteca está vacía por ahora.');
   }
   if (tab === 'profile') {
-    openPanel(controls.panelAuth);
+    if (!currentUser) {
+      openPanel(controls.panelAuth);
+    } else {
+      controls.authForm.classList.add('hidden');
+      controls.profileView.classList.remove('hidden');
+      openPanel(controls.panelAuth);
+    }
   }
   if (tab === 'studio') {
     if (!currentUser || currentUser.email !== adminEmail) {
@@ -470,13 +481,14 @@ const publishWork = () => {
 const handleEmailSignIn = async () => {
   const email = controls.authEmail.value.trim();
   const password = controls.authPassword.value;
-  if (!email || !password) { showToast('Ingresa correo y contrase�a.'); return; }
+  if (!email || !password) { showToast('Ingresa correo y contraseña.'); return; }
   try {
     await auth.signInWithEmailAndPassword(email, password);
+    setAuthState(auth.currentUser);
     closePanel(controls.panelAuth);
-    showToast('Sesi�n iniciada.');
+    showToast('Sesión iniciada.');
   } catch (error) {
-    showToast(error.message || 'Error al iniciar sesi�n.');
+    showToast(error.message || 'Error al iniciar sesión.');
     console.error(error);
   }
 };
@@ -484,9 +496,10 @@ const handleEmailSignIn = async () => {
 const handleEmailRegister = async () => {
   const email = controls.authEmail.value.trim();
   const password = controls.authPassword.value;
-  if (!email || !password) { showToast('Ingresa correo y contrase�a.'); return; }
+  if (!email || !password) { showToast('Ingresa correo y contraseña.'); return; }
   try {
     await auth.createUserWithEmailAndPassword(email, password);
+    setAuthState(auth.currentUser);
     closePanel(controls.panelAuth);
     showToast('Cuenta creada. Bienvenido.');
   } catch (error) {
@@ -498,8 +511,9 @@ const handleEmailRegister = async () => {
 const handleGoogleSignIn = async () => {
   try {
     await auth.signInWithPopup(googleProvider);
+    setAuthState(auth.currentUser);
     closePanel(controls.panelAuth);
-    showToast('Has iniciado sesi�n con Google.');
+    showToast('Has iniciado sesión con Google.');
   } catch (error) {
     showToast(error.message || 'Error con Google.');
     console.error(error);
@@ -540,6 +554,9 @@ const init = () => {
   auth.onAuthStateChanged(user => {
     setAuthState(user);
     savedLibrary = getSavedLibrary();
+    if (user) {
+      closePanel(controls.panelAuth);
+    }
   });
   controls.btnHeroExplore.addEventListener('click', () => openPanel(controls.panelSearch));
   controls.btnExplore.addEventListener('click', () => openPanel(controls.panelSearch));
