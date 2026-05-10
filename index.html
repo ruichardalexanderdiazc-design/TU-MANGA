@@ -179,7 +179,7 @@
         <h2>Entrar o crear cuenta</h2>
         <button id="btnCloseAuth" class="icon-button">✕</button>
       </div>
-      <div class="auth-body">
+      <div class="auth-body" id="authForm">
         <p>Usa correo y contraseña o ingresa con Google para acceder.</p>
         <input id="authEmail" type="email" placeholder="Correo electrónico" />
         <input id="authPassword" type="password" placeholder="Contraseña" />
@@ -188,8 +188,22 @@
           <button id="btnEmailRegister" class="secondary">Crear cuenta</button>
         </div>
         <button id="btnGoogleSignIn" class="pill">Continuar con Google</button>
-        <button id="btnSignOut" class="pill secondary hidden">Cerrar sesión</button>
         <div class="auth-help">Tu correo se usa solo para iniciar sesión.</div>
+      </div>
+      <div class="auth-body hidden" id="profileView">
+        <div class="profile-summary">
+          <div class="profile-avatar" id="profileAvatar"></div>
+          <div>
+            <p class="profile-name" id="profileName">Usuario</p>
+            <p class="profile-email" id="profileEmail"></p>
+          </div>
+        </div>
+        <div class="profile-buttons">
+          <button id="btnProfileSettings" class="pill small">Ajustes</button>
+          <button id="btnProfileLanguage" class="pill small">Idioma</button>
+          <button id="btnSignOut" class="pill secondary">Cerrar sesión</button>
+        </div>
+        <p class="auth-help">Aquí puedes ver tu perfil y cerrar sesión.</p>
       </div>
     </div>
   </div>

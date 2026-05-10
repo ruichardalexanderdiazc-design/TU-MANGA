@@ -57,6 +57,12 @@ input:focus, textarea:focus, select:focus { border-color: rgba(255,20,147,0.3); 
 textarea { min-height: 120px; resize: vertical; }
 .auth-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 .auth-help { color: #888; font-size: 0.95rem; }
+.profile-summary { display: flex; align-items: center; gap: 16px; }
+.profile-avatar { width: 68px; height: 68px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #ff1493, #ff69b4); }
+.profile-name { margin: 0 0 4px; font-size: 1.2rem; font-weight: 700; }
+.profile-email { margin: 0; color: #777; }
+.profile-buttons { display: grid; gap: 12px; }
+.auth-body.hidden { display: none; }
 .filter-pill { padding: 10px 16px; border-radius: 999px; border: 1px solid rgba(255,105,180,0.15); background: #fff; color: #ff1493; cursor: pointer; transition: all .2s ease; }
 .filter-pill:hover { transform: translateY(-1px); background: rgba(255,105,180,0.12); }
 .filter-pill.active { background: linear-gradient(135deg, #ff1493, #ff69b4); border-color: transparent; color: #fff; }

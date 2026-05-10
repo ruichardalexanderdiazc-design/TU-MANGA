@@ -77,6 +77,13 @@ const controls = {
   btnSignOut: document.getElementById('btnSignOut'),
   authEmail: document.getElementById('authEmail'),
   authPassword: document.getElementById('authPassword'),
+  authForm: document.getElementById('authForm'),
+  profileView: document.getElementById('profileView'),
+  profileAvatar: document.getElementById('profileAvatar'),
+  profileName: document.getElementById('profileName'),
+  profileEmail: document.getElementById('profileEmail'),
+  btnProfileSettings: document.getElementById('btnProfileSettings'),
+  btnProfileLanguage: document.getElementById('btnProfileLanguage'),
   btnAdminPanel: document.getElementById('btnAdminPanel'),
   btnCloseAdmin: document.getElementById('btnCloseAdmin'),
   btnCreateWork: document.getElementById('btnCreateWork'),
@@ -134,15 +141,17 @@ const setAuthState = user => {
   currentUser = user;
   const isAdmin = user?.email === adminEmail;
   controls.btnSignIn.classList.toggle('hidden', !!user);
-  if (user) {
-    controls.btnSignIn.textContent = user.email.split('@')[0];
-  } else {
-    controls.btnSignIn.textContent = 'Entrar / Registro';
-  }
   controls.btnAdminPanel.classList.toggle('hidden', !isAdmin);
   controls.navStudio.classList.toggle('hidden', !isAdmin);
-  controls.btnSignOut.classList.toggle('hidden', !user);
-  if (!user) {
+  if (user) {
+    controls.btnSignIn.textContent = user.email.split('@')[0];
+    controls.authForm.classList.add('hidden');
+    controls.profileView.classList.remove('hidden');
+    renderProfile(user);
+  } else {
+    controls.btnSignIn.textContent = 'Entrar / Registro';
+    controls.authForm.classList.remove('hidden');
+    controls.profileView.classList.add('hidden');
     controls.authEmail.value = '';
     controls.authPassword.value = '';
   }
@@ -497,6 +506,20 @@ const handleGoogleSignIn = async () => {
   }
 };
 
+const renderProfile = user => {
+  const name = user.displayName || user.email.split('@')[0] || 'Usuario';
+  const avatar = user.photoURL || null;
+  controls.profileName.textContent = name;
+  controls.profileEmail.textContent = user.email || '';
+  if (avatar) {
+    controls.profileAvatar.style.backgroundImage = `url(${avatar})`;
+    controls.profileAvatar.textContent = '';
+  } else {
+    controls.profileAvatar.style.backgroundImage = 'none';
+    controls.profileAvatar.textContent = name.charAt(0).toUpperCase();
+  }
+};
+
 const handleSignOut = async () => {
   try {
     await auth.signOut();
@@ -556,6 +579,8 @@ const init = () => {
   controls.btnEmailRegister.addEventListener('click', handleEmailRegister);
   controls.btnGoogleSignIn.addEventListener('click', handleGoogleSignIn);
   controls.btnSignOut.addEventListener('click', handleSignOut);
+  controls.btnProfileSettings.addEventListener('click', () => showToast('Ajustes de perfil no disponibles aún.'));
+  controls.btnProfileLanguage.addEventListener('click', () => showToast('Cambiar idioma no está activado aún.'));
   controls.btnAdminPanel.addEventListener('click', () => { loadAdminWorks(); openPanel(controls.panelAdmin); });
   controls.btnCloseAdmin.addEventListener('click', () => closePanel(controls.panelAdmin));
   controls.btnCreateWork.addEventListener('click', () => { prepareStudio(); openPanel(controls.panelStudio); });
