@@ -13,6 +13,26 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
+const PWA_CACHE_NAME = 'tu-manga-cache-v1';
+const PWA_ASSETS = [
+  '/',
+  'index.html',
+  'styles.css',
+  'app.js',
+  'logo.svg',
+  'manifest.json'
+];
+
+const registerServiceWorker = async () => {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const registration = await navigator.serviceWorker.register('sw.js');
+    console.log('Service Worker registrado:', registration.scope);
+  } catch (error) {
+    console.warn('Error al registrar Service Worker:', error);
+  }
+};
+
 const sections = {
   new: document.getElementById('newCards'),
   soon: document.getElementById('soonCards'),
@@ -484,13 +504,14 @@ const publishWork = () => {
 const handleEmailSignIn = async () => {
   const email = controls.authEmail.value.trim();
   const password = controls.authPassword.value;
-  if (!email || !password) { showToast('Ingresa correo y contrase�a.'); return; }
+  if (!email || !password) { showToast('Ingresa correo y contraseña.'); return; }
   try {
-    await auth.signInWithEmailAndPassword(email, password);
+    const result = await auth.signInWithEmailAndPassword(email, password);
+    setAuthState(result.user);
     closePanel(controls.panelAuth);
-    showToast('Sesi�n iniciada.');
+    showToast('Sesion iniciada.');
   } catch (error) {
-    showToast(error.message || 'Error al iniciar sesi�n.');
+    showToast(error.message || 'Error al iniciar sesion.');
     console.error(error);
   }
 };
@@ -498,9 +519,10 @@ const handleEmailSignIn = async () => {
 const handleEmailRegister = async () => {
   const email = controls.authEmail.value.trim();
   const password = controls.authPassword.value;
-  if (!email || !password) { showToast('Ingresa correo y contrase�a.'); return; }
+  if (!email || !password) { showToast('Ingresa correo y contraseña.'); return; }
   try {
-    await auth.createUserWithEmailAndPassword(email, password);
+    const result = await auth.createUserWithEmailAndPassword(email, password);
+    setAuthState(result.user);
     closePanel(controls.panelAuth);
     showToast('Cuenta creada. Bienvenido.');
   } catch (error) {
@@ -511,7 +533,8 @@ const handleEmailRegister = async () => {
 
 const handleGoogleSignIn = async () => {
   try {
-    await auth.signInWithPopup(googleProvider);
+    const result = await auth.signInWithPopup(googleProvider);
+    setAuthState(result.user);
     closePanel(controls.panelAuth);
     showToast('Has iniciado sesi�n con Google.');
   } catch (error) {
@@ -587,7 +610,14 @@ const init = () => {
     if (!currentChapter) return; const index = currentChapters.findIndex(ch => ch.id === currentChapter.id);
     if (index < currentChapters.length - 1) openReader(currentChapters[index + 1]);
   });
-  controls.btnSignIn.addEventListener('click', () => openPanel(controls.panelAuth));
+  controls.btnSignIn.addEventListener('click', () => {
+    setAuthState(auth.currentUser);
+    openPanel(controls.panelAuth);
+  });
+  controls.navProfile.addEventListener('click', () => {
+    setAuthState(auth.currentUser);
+    openPanel(controls.panelAuth);
+  });
   controls.btnCloseAuth.addEventListener('click', () => closePanel(controls.panelAuth));
   controls.btnEmailSignIn.addEventListener('click', handleEmailSignIn);
   controls.btnEmailRegister.addEventListener('click', handleEmailRegister);
@@ -619,4 +649,7 @@ const init = () => {
   controls.workStatus.addEventListener('change', showScheduleRow);
 };
 
-window.addEventListener('load', init);
+window.addEventListener('load', () => {
+  init();
+  registerServiceWorker();
+});

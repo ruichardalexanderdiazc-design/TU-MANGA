@@ -1,0 +1,16 @@
+{
+  "name": "TU MANGA",
+  "short_name": "TU MANGA",
+  "description": "Lector de mangas, manhwas y cómics",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff1493",
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
