@@ -99,6 +99,10 @@ const controls = {
   reviewTitle: document.getElementById('reviewTitle'),
   reviewSummary: document.getElementById('reviewSummary'),
   reviewInfo: document.getElementById('reviewInfo'),
+  navHome: document.getElementById('navHome'),
+  navDiscover: document.getElementById('navDiscover'),
+  navLibrary: document.getElementById('navLibrary'),
+  navProfile: document.getElementById('navProfile'),
   btnCloseSearchOnPage: document.getElementById('btnCloseSearch')
 };
 let currentUser = null;
@@ -108,85 +112,11 @@ let currentChapter = null;
 let selectedTags = new Set();
 let savedLibrary = new Set();
 
-const genreOptions = ['Acción','Aventura','Drama','Suspenso','Romance','Fantasía','Ciencia ficción','Vida escolar','Yaoi','BL','+18','Gore','Magia'];
-const categoryLabels = ['Acción','Aventura','Romance','Fantasía','Drama','Suspenso','Ciencia ficción','Vida escolar','BL','Yaoi','+18','Gore','Magia','Urban'];
-const workStatusLabels = { finalizado: 'FINALIZADO', 'en emisión': 'EN EMISIÓN' };
-const sampleWorks = [
-  {
-    id: 'w1',
-    title: 'El Poder del Destino',
-    synopsis: 'Un joven descubre poderes ocultos y debe enfrentar una amenaza que pone en riesgo su mundo.',
-    cover_url: 'https://via.placeholder.com/400x520/ffb6d5/fff?text=El+Poder+del+Destino',
-    work_type: 'MANGA',
-    status: 'finalizado',
-    tags: ['Acción', 'Aventura', 'Fantasía'],
-    author: 'Rika S.',
-    read_count: 142,
-    likes_count: 87,
-    comments_count: 12,
-    created_at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'w2',
-    title: 'Corazones Prohibidos',
-    synopsis: 'Una historia de amor donde dos mundos paralelos se encuentran y deben vencer sus propias sombras.',
-    cover_url: 'https://via.placeholder.com/400x520/ff9ac1/fff?text=Corazones+Prohibidos',
-    work_type: 'MANHWA',
-    status: 'en emisión',
-    tags: ['Romance', 'Drama', 'Vida escolar'],
-    author: 'Hana Lee',
-    read_count: 256,
-    likes_count: 193,
-    comments_count: 20,
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'w3',
-    title: 'La Sombra del Pasado',
-    synopsis: 'Un detective se enfrenta a un caso que lo conecta con su pasado y revela secretos inesperados.',
-    cover_url: 'https://via.placeholder.com/400x520/ffccd7/333?text=La+Sombra+del+Pasado',
-    work_type: 'COMIC',
-    status: 'finalizado',
-    tags: ['Suspenso', 'Drama', '+18'],
-    author: 'Kiko Matsumoto',
-    read_count: 89,
-    likes_count: 56,
-    comments_count: 5,
-    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'w4',
-    title: 'Academia de Magia',
-    synopsis: 'Un mundo secreto de magia y competencias intensas donde los estudiantes deben dominar sus poderes.',
-    cover_url: 'https://via.placeholder.com/400x520/ffc1e3/333?text=Academia+de+Magia',
-    work_type: 'MANGA',
-    status: 'en emisión',
-    tags: ['Fantasía', 'Vida escolar', 'Acción'],
-    author: 'Mika Yamamoto',
-    read_count: 312,
-    likes_count: 241,
-    comments_count: 34,
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-  }
-];
-
-const chapterMap = {
-  w1: [
-    { id: 'c1', chapter_number: '1', cover_url: 'https://via.placeholder.com/400x520/ffb6d5/fff?text=Cap+1', pages: ['https://via.placeholder.com/800x1000/fff0f6/333?text=Página+1', 'https://via.placeholder.com/800x1000/fff0f6/333?text=Página+2'] },
-    { id: 'c2', chapter_number: '2', cover_url: 'https://via.placeholder.com/400x520/ffe2ec/333?text=Cap+2', pages: ['https://via.placeholder.com/800x1000/fff0f6/333?text=Página+1', 'https://via.placeholder.com/800x1000/fff0f6/333?text=Página+2'] }
-  ],
-  w2: [
-    { id: 'c3', chapter_number: '1', cover_url: 'https://via.placeholder.com/400x520/ff9ac1/fff?text=Cap+1', pages: ['https://via.placeholder.com/800x1000/fff0f6/333?text=Página+1', 'https://via.placeholder.com/800x1000/fff0f6/333?text=Página+2', 'https://via.placeholder.com/800x1000/fff0f6/333?text=Página+3'] }
-  ],
-  w3: [
-    { id: 'c4', chapter_number: '1', cover_url: 'https://via.placeholder.com/400x520/ffccd7/333?text=Cap+1', pages: ['https://via.placeholder.com/800x1000/fff0f6/333?text=Página+1', 'https://via.placeholder.com/800x1000/fff0f6/333?text=Página+2'] }
-  ],
-  w4: [
-    { id: 'c5', chapter_number: '1', cover_url: 'https://via.placeholder.com/400x520/ffc1e3/333?text=Cap+1', pages: ['https://via.placeholder.com/800x1000/fff0f6/333?text=Página+1', 'https://via.placeholder.com/800x1000/fff0f6/333?text=Página+2', 'https://via.placeholder.com/800x1000/fff0f6/333?text=Página+3'] }
-  ]
-};
-
-let works = [...sampleWorks];
+const genreOptions = ['Acciï¿½n','Aventura','Drama','Suspenso','Romance','Fantasï¿½a','Ciencia ficciï¿½n','Vida escolar','Yaoi','BL','+18','Gore','Magia'];
+const categoryLabels = ['Acciï¿½n','Aventura','Romance','Fantasï¿½a','Drama','Suspenso','Ciencia ficciï¿½n','Vida escolar','BL','Yaoi','+18','Gore','Magia','Urban'];
+const workStatusLabels = { finalizado: 'FINALIZADO', 'en emisiÃ³n': 'EN EMISIÃ“N' };
+const works = [];
+const chapterMap = {};
 
 const showToast = message => {
   const toast = document.getElementById('toast');
@@ -205,6 +135,10 @@ const setAuthState = user => {
   controls.btnSignIn.textContent = user ? user.email.split('@')[0] : 'Entrar / Registro';
   controls.btnAdminPanel.classList.toggle('hidden', !isAdmin);
   controls.btnSignOut.classList.toggle('hidden', !user);
+  if (controls.navProfile) {
+    const badge = controls.navProfile.querySelector('.admin-badge');
+    badge?.classList.toggle('hidden', !isAdmin);
+  }
   if (!user) {
     controls.authEmail.value = '';
     controls.authPassword.value = '';
@@ -241,7 +175,7 @@ const buildCard = work => {
 const renderCards = (element, list) => {
   element.innerHTML = '';
   if (!list.length) {
-    element.innerHTML = '<div class="card"><div class="card-body"><p>No hay obras aquí todavía.</p></div></div>';
+    element.innerHTML = '<div class="card"><div class="card-body"><p>No hay obras aquï¿½ todavï¿½a.</p></div></div>';
     return;
   }
   list.forEach(item => element.appendChild(buildCard(item)));
@@ -264,6 +198,25 @@ const buildSection = async () => {
   renderCards(sections.all, allWorks);
   renderCards(sections.finished, finished);
   renderCards(sections.finals, finished);
+};
+
+const setActiveNav = tab => {
+  ['navHome','navDiscover','navLibrary','navProfile'].forEach(id => {
+    controls[id].classList.toggle('active', id === `nav${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+  });
+  if (tab === 'home') {
+    document.getElementById('mainContent').scrollIntoView({ behavior: 'smooth' });
+  }
+  if (tab === 'discover') {
+    openPanel(controls.panelSearch);
+  }
+  if (tab === 'library') {
+    if (!currentUser) openPanel(controls.panelAuth);
+    else showToast('Tu biblioteca estÃ¡ vacÃ­a por ahora.');
+  }
+  if (tab === 'profile') {
+    openPanel(controls.panelAuth);
+  }
 };
 
 const loadGenreFilters = () => {
@@ -301,7 +254,7 @@ const openWorkDetail = async work => {
   currentWork = work;
   currentChapters = await fetchChapters(work.id);
   controls.detailTitle.textContent = work.title;
-  controls.detailStatus.textContent = `${work.work_type} · ${workStatusLabels[work.status] || work.status}`;
+  controls.detailStatus.textContent = `${work.work_type} ï¿½ ${workStatusLabels[work.status] || work.status}`;
   controls.detailCover.src = work.cover_url;
   controls.detailType.textContent = work.work_type;
   controls.detailFinal.textContent = work.status.toUpperCase();
@@ -316,12 +269,12 @@ const openWorkDetail = async work => {
   const synopsis = work.synopsis || 'Sinopsis no disponible.';
   controls.detailSynopsis.textContent = synopsis;
   controls.btnToggleSynopsis.classList.toggle('hidden', synopsis.length < 220);
-  controls.detailReadCount.textContent = `Leídos ${work.read_count}`;
+  controls.detailReadCount.textContent = `Leï¿½dos ${work.read_count}`;
   controls.detailLikeCount.textContent = `Likes ${work.likes_count}`;
   controls.detailCommentCount.textContent = `Comentarios ${work.comments_count}`;
   if (synopsis.length > 220) {
     controls.detailSynopsis.style.maxHeight = '138px';
-    controls.btnToggleSynopsis.textContent = 'Leer más';
+    controls.btnToggleSynopsis.textContent = 'Leer mï¿½s';
   }
   controls.chapterList.innerHTML = '';
   currentChapters.slice(0, 5).forEach(chapter => controls.chapterList.appendChild(buildChapterCard(chapter)));
@@ -332,8 +285,8 @@ const openWorkDetail = async work => {
 const buildChapterCard = chapter => {
   const article = document.createElement('article');
   article.className = 'chapter-card card';
-  article.innerHTML = `<img src="${chapter.cover_url}" alt="Capítulo ${chapter.chapter_number}" />
-    <div class="card-body"><p>Capítulo ${chapter.chapter_number}</p><button class="pill small">Leer</button></div>`;
+  article.innerHTML = `<img src="${chapter.cover_url}" alt="Capï¿½tulo ${chapter.chapter_number}" />
+    <div class="card-body"><p>Capï¿½tulo ${chapter.chapter_number}</p><button class="pill small">Leer</button></div>`;
   article.addEventListener('click', () => openReader(chapter));
   return article;
 };
@@ -341,12 +294,12 @@ const buildChapterCard = chapter => {
 const openChaptersPanel = () => {
   controls.chapterGrid.innerHTML = '';
   if (!currentChapters.length) {
-    controls.chapterGrid.innerHTML = '<div class="card"><div class="card-body"><p>No hay capítulos.</p></div></div>';
+    controls.chapterGrid.innerHTML = '<div class="card"><div class="card-body"><p>No hay capï¿½tulos.</p></div></div>';
   } else {
     currentChapters.forEach(chapter => {
       const card = document.createElement('article');
       card.className = 'card chapter-card';
-      card.innerHTML = `<img src="${chapter.cover_url}" alt="Capítulo ${chapter.chapter_number}" /><div class="card-body"><h3>Capítulo ${chapter.chapter_number}</h3><p>Selecciona para leer</p></div>`;
+      card.innerHTML = `<img src="${chapter.cover_url}" alt="Capï¿½tulo ${chapter.chapter_number}" /><div class="card-body"><h3>Capï¿½tulo ${chapter.chapter_number}</h3><p>Selecciona para leer</p></div>`;
       card.addEventListener('click', () => openReader(chapter));
       controls.chapterGrid.appendChild(card);
     });
@@ -359,18 +312,18 @@ const openReader = chapter => {
   controls.readerPages.innerHTML = '';
   const pages = chapter.pages || [];
   if (!pages.length) {
-    controls.readerPages.innerHTML = '<p style="color:#333; padding:24px;">No hay páginas cargadas para este capítulo.</p>';
+    controls.readerPages.innerHTML = '<p style="color:#333; padding:24px;">No hay pï¿½ginas cargadas para este capï¿½tulo.</p>';
   } else {
     pages.forEach((page, index) => {
       const img = document.createElement('img');
       img.src = page;
-      img.alt = `Página ${index + 1}`;
+      img.alt = `Pï¿½gina ${index + 1}`;
       controls.readerPages.appendChild(img);
     });
   }
   controls.readerHeader.classList.remove('hidden');
   controls.readerFooter.classList.remove('hidden');
-  controls.readerTitle.textContent = `${currentWork.title} · Capítulo ${chapter.chapter_number}`;
+  controls.readerTitle.textContent = `${currentWork.title} ï¿½ Capï¿½tulo ${chapter.chapter_number}`;
   controls.readerSubtitle.textContent = currentWork.author;
   openPanel(controls.readerOverlay);
   trackRead(chapter);
@@ -392,11 +345,11 @@ const addLibraryEntry = workId => {
 const toggleSynopsis = () => {
   const isExpanded = controls.detailSynopsis.style.maxHeight !== 'none';
   controls.detailSynopsis.style.maxHeight = isExpanded ? '138px' : 'none';
-  controls.btnToggleSynopsis.textContent = isExpanded ? 'Leer más' : 'Leer menos';
+  controls.btnToggleSynopsis.textContent = isExpanded ? 'Leer mï¿½s' : 'Leer menos';
 };
 
 const reportWork = () => {
-  if (!currentUser) { showToast('Debes iniciar sesión para reportar.'); return; }
+  if (!currentUser) { showToast('Debes iniciar sesiï¿½n para reportar.'); return; }
   const reason = prompt('Motivo del reporte:');
   if (!reason) return;
   showToast('Reporte enviado. Gracias.');
@@ -418,14 +371,14 @@ const loadAdminWorks = () => {
   const list = works.filter(work => work.author === adminEmail || work.author === 'Admin');
   controls.adminWorksList.innerHTML = '';
   if (!list.length) {
-    controls.adminWorksList.innerHTML = '<p>No hay obras publicadas aún.</p>';
+    controls.adminWorksList.innerHTML = '<p>No hay obras publicadas aï¿½n.</p>';
     return;
   }
   list.forEach(work => {
     const row = document.createElement('div');
     row.className = 'card';
     row.style.padding = '14px 16px';
-    row.innerHTML = `<strong>${work.title}</strong><p>${work.work_type} · ${work.status}</p>`;
+    row.innerHTML = `<strong>${work.title}</strong><p>${work.work_type} ï¿½ ${work.status}</p>`;
     controls.adminWorksList.appendChild(row);
   });
 };
@@ -451,24 +404,24 @@ const openStudioStep = step => {
 };
 
 const showScheduleRow = () => {
-  controls.workScheduleRow.classList.toggle('hidden', controls.workStatus.value !== 'en emisión');
+  controls.workScheduleRow.classList.toggle('hidden', controls.workStatus.value !== 'en emisiï¿½n');
 };
 
 const prepareReview = () => {
   const tags = [...controls.categoryOptions.querySelectorAll('.selected')].map(el => el.textContent);
-  const schedule = controls.workSchedule.value ? new Date(controls.workSchedule.value).toLocaleString() : 'Sin programación';
+  const schedule = controls.workSchedule.value ? new Date(controls.workSchedule.value).toLocaleString() : 'Sin programaciï¿½n';
   controls.reviewCover.src = controls.workCover.value || 'https://via.placeholder.com/400x520/ffccd7/333?text=Portada';
-  controls.reviewTitle.textContent = controls.workTitle.value || 'Título pendiente';
+  controls.reviewTitle.textContent = controls.workTitle.value || 'Tï¿½tulo pendiente';
   controls.reviewSummary.textContent = controls.workSynopsis.value || 'No hay sinopsis.';
-  controls.reviewInfo.textContent = `Estado: ${workStatusLabels[controls.workStatus.value] || controls.workStatus.value}. Capítulos: ${controls.workChapterCount.value}. Tipo: ${controls.workType.value}. Etiquetas: ${tags.join(', ') || 'Sin etiquetas'}. Programado: ${schedule}`;
+  controls.reviewInfo.textContent = `Estado: ${workStatusLabels[controls.workStatus.value] || controls.workStatus.value}. Capï¿½tulos: ${controls.workChapterCount.value}. Tipo: ${controls.workType.value}. Etiquetas: ${tags.join(', ') || 'Sin etiquetas'}. Programado: ${schedule}`;
 };
 
 const publishWork = () => {
-  if (!currentUser || currentUser.email !== adminEmail) { showToast('Necesitas iniciar sesión con la cuenta correcta.'); return; }
+  if (!currentUser || currentUser.email !== adminEmail) { showToast('Necesitas iniciar sesiï¿½n con la cuenta correcta.'); return; }
   const tags = [...controls.categoryOptions.querySelectorAll('.selected')].map(el => el.textContent);
   const newWork = {
     id: `w${Date.now()}`,
-    title: controls.workTitle.value || 'Sin título',
+    title: controls.workTitle.value || 'Sin tï¿½tulo',
     synopsis: controls.workSynopsis.value || 'Sinopsis pendiente.',
     cover_url: controls.workCover.value || 'https://via.placeholder.com/400x520/ffccd7/333?text=Portada',
     work_type: controls.workType.value,
@@ -486,7 +439,7 @@ const publishWork = () => {
     manga_work_id: newWork.id,
     chapter_number: `${index + 1}`,
     cover_url: newWork.cover_url,
-    pages: ['https://via.placeholder.com/800x1000/fff0f6/333?text=Página+1']
+    pages: ['https://via.placeholder.com/800x1000/fff0f6/333?text=Pï¿½gina+1']
   }));
   showToast(`Obra ${newWork.title} publicada.`);
   closePanel(controls.panelStudio);
@@ -497,13 +450,13 @@ const publishWork = () => {
 const handleEmailSignIn = async () => {
   const email = controls.authEmail.value.trim();
   const password = controls.authPassword.value;
-  if (!email || !password) { showToast('Ingresa correo y contraseña.'); return; }
+  if (!email || !password) { showToast('Ingresa correo y contraseï¿½a.'); return; }
   try {
     await auth.signInWithEmailAndPassword(email, password);
     closePanel(controls.panelAuth);
-    showToast('Sesión iniciada.');
+    showToast('Sesiï¿½n iniciada.');
   } catch (error) {
-    showToast(error.message || 'Error al iniciar sesión.');
+    showToast(error.message || 'Error al iniciar sesiï¿½n.');
     console.error(error);
   }
 };
@@ -511,7 +464,7 @@ const handleEmailSignIn = async () => {
 const handleEmailRegister = async () => {
   const email = controls.authEmail.value.trim();
   const password = controls.authPassword.value;
-  if (!email || !password) { showToast('Ingresa correo y contraseña.'); return; }
+  if (!email || !password) { showToast('Ingresa correo y contraseï¿½a.'); return; }
   try {
     await auth.createUserWithEmailAndPassword(email, password);
     closePanel(controls.panelAuth);
@@ -526,7 +479,7 @@ const handleGoogleSignIn = async () => {
   try {
     await auth.signInWithPopup(googleProvider);
     closePanel(controls.panelAuth);
-    showToast('Has iniciado sesión con Google.');
+    showToast('Has iniciado sesiï¿½n con Google.');
   } catch (error) {
     showToast(error.message || 'Error con Google.');
     console.error(error);
@@ -536,10 +489,10 @@ const handleGoogleSignIn = async () => {
 const handleSignOut = async () => {
   try {
     await auth.signOut();
-    showToast('Sesión cerrada.');
+    showToast('Sesiï¿½n cerrada.');
     closePanel(controls.panelAuth);
   } catch (error) {
-    showToast('No se pudo cerrar sesión.');
+    showToast('No se pudo cerrar sesiï¿½n.');
   }
 };
 
@@ -557,6 +510,10 @@ const init = () => {
   controls.btnGoList.addEventListener('click', () => openPanel(controls.panelSearch));
   controls.btnCloseSearch.addEventListener('click', () => closePanel(controls.panelSearch));
   controls.btnSearch.addEventListener('click', performSearch);
+  controls.navHome.addEventListener('click', () => setActiveNav('home'));
+  controls.navDiscover.addEventListener('click', () => setActiveNav('discover'));
+  controls.navLibrary.addEventListener('click', () => setActiveNav('library'));
+  controls.navProfile.addEventListener('click', () => setActiveNav('profile'));
   controls.searchInput.addEventListener('keyup', e => e.key === 'Enter' && performSearch());
   controls.btnBackDetail.addEventListener('click', () => closePanel(controls.panelDetail));
   controls.btnViewAllChapters.addEventListener('click', openChaptersPanel);
